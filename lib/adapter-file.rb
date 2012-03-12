@@ -7,15 +7,24 @@ module Adapter
   module File
 
     def initialize(client, options={})
-     @client = client  # this will be the base directory
+     base_directory(client)  # this will be the base directory
+     paths = ::File.split(key)
+     FileUtils.mkdir_p(paths.first) unless ::File.directory?(paths.first)
    end
            
     def base_directory(root='./')
       @base_directory ||= ::File.expand_path(client)
     end
+    
+    def full_key(key)
+      raise "you are not allowed to use double dot '..' notation in paths" if key.match(/\.\.\//)
+      ::File.expand_path(::File.join(base_directory, key))
+    end
+    
     # does the file already exist?
     def key?(key)
-      ::File.exists?(key)
+      raise "you are not allowed to use double dot '..' notation in paths" if key.match(/\.\.\//)
+      ::File.exists?(full_key(key))
     end
     
     def keys
@@ -27,39 +36,28 @@ module Adapter
     end
 
     def read(key)
-      ::File.read(key)
+      ::File.read(full_key(key))
     end
 
     def write(key, value)
-      paths = ::File.split(key)
-      raise "you are not allowed to use double dot '..' notation in paths" if key.match(/\.\.\//)
+      paths = ::File.split(full_key(key))
       FileUtils.mkdir_p(paths.first) unless ::File.directory?(paths.first)
-      f = ::File.open(key, 'w') {|f| f.write(value) }
+      f = ::File.open(full_key(key), 'w') {|f| f.write(value) }
     end
 
     def delete(key, options={:recursive=>false})      
-      if ::File.file?(key)
-        puts "file #{key}"
-        ::File.delete(key)
-      elsif ::File.directory?(key)
-        ::FileUtils.rm(key) unless options[:recursive]
-        ::FileUtils.rm_r(key) if options[:recursive]
-        end
+      if ::File.file?(full_key(key))
+        ::File.delete(full_key(key))
+      elsif ::File.directory?(full_key(key))
+        ::FileUtils.rm(full_key(key)) unless options[:recursive]
+        ::FileUtils.rm_r(full_key(key)) if options[:recursive]
       else
         raise 'unknown error'
       end
     end
 
     def clear
-      Dir.foreach(base_directory) do |item|
-         if ::File.file?(item)
-           puts "file #{item}"
-           ::File.delete(item)
-         else
-           puts "#{item } is not a file"
-         end
-      end
-     
+      delete('', {:recursive=>true})
     end
 
     def encode(value)
