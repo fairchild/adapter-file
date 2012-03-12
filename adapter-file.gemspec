@@ -5,11 +5,11 @@ require "adapter-file/version"
 Gem::Specification.new do |s|
   s.name        = "adapter-file"
   s.version     = Adapter::File::VERSION
-  s.authors     = ["Michael"]
+  s.authors     = ["Michael Fairchild"]
   s.email       = ["fairchild@stimble.net"]
   s.homepage    = ""
-  s.summary     = %q{TODO: Write a gem summary}
-  s.description = %q{TODO: Write a gem description}
+  s.summary     = %q{key value storage adapter to use files for persistence}
+  s.description = %q{key value storage adapter to use files for persistence}
 
   s.rubyforge_project = "adapter-file"
 
@@ -20,5 +20,5 @@ Gem::Specification.new do |s|
 
   # specify any dependencies here; for example:
   # s.add_development_dependency "rspec"
-  # s.add_runtime_dependency "rest-client"
+  s.add_runtime_dependency "adapter"
 end
